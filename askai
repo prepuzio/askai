@@ -3,7 +3,7 @@ set -e
 [ ! -z "$OPENAI_API_KEY" ]
 if [ "$#" -eq 0 ]; then
 	TMP=$(mktemp)
-	trap 'rm -f "$TMP"' EXIT INT TERM HUP
+	trap "rm -f $TMP" EXIT INT TERM HUP
 	${EDITOR:-ed} $TMP
 	[ ! -s "$TMP" ] && exit
 	MSG=$(<"$TMP")
