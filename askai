@@ -1,7 +1,15 @@
 #!/bin/bash
 set -e
 [ ! -z "$OPENAI_API_KEY" ]
-MSG=${@}
+if [ "$#" -eq 0 ]; then
+	TMP=$(mktemp)
+	trap 'rm -f "$TMP"' EXIT INT TERM HUP
+	${EDITOR:-ed} $TMP
+	[ ! -s "$TMP" ] && exit
+	MSG=$(cat $TMP)
+else
+	MSG="$*"
+fi
 curl https://api.openai.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
