@@ -6,16 +6,21 @@ if [ "$#" -eq 0 ]; then
 	trap 'rm -f "$TMP"' EXIT INT TERM HUP
 	${EDITOR:-ed} $TMP
 	[ ! -s "$TMP" ] && exit
-	MSG=$(cat $TMP)
+	MSG=$(<"$TMP")
 else
 	MSG="$*"
 fi
+REQ_BODY=$(
+  jq -n --arg msg "$MSG" --arg model "gpt-4.1-mini" '
+    {
+      model: $model,
+      messages: [
+        { role: "user", content: $msg }
+      ]
+    }'
+)
 curl https://api.openai.com/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
-  -d "{
-    \"model\": \"gpt-4.1-mini\",
-    \"messages\": [
-      {\"role\": \"user\", \"content\": \"$MSG\"}
-    ]
-  }" 2>/dev/null | jq '.choices.[0].message.content'
+  -d "$REQ_BODY" 2>/dev/null \
+  | jq '.choices.[0].message.content'
